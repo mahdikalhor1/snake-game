@@ -1,12 +1,15 @@
 #include <stdlib.h>
 #include <Adafruit_NeoPixel.h>
 
+// node simulates an rgb led
+// it is used to store snake as a list of nodes
 typedef struct Node{
   int position;
   struct Node* next;
 
 }Node;
 
+// the snake structure that holds its nodes as a linked list
 typedef struct Snake{
   int next_move;
   Node* tail;
@@ -14,13 +17,19 @@ typedef struct Snake{
 
 }Snake;
 
+// buttons for moving snake
+// each should be connected to provided pin number in the arduino
 const int UpButton = 6;
 const int RightButton = 4;
 const int LeftButton = 5;
 const int DownButton = 3;
 
+// this variable stores the balls possition
 int ball;
 Snake* snake;
+// the main board of game containing 256 rgb led's
+// led is connected to pin 2 of arduino
+//it is being handeld only with one pin
 Adafruit_NeoPixel led_display = Adafruit_NeoPixel(256, 2, NEO_GRB + NEO_KHZ800);
 
 
@@ -33,17 +42,20 @@ void initialize_ball(void);
 void lost(void);
 
 void setup() {
+//  initialize base components
   led_display.begin();
   led_display.setBrightness(200);
   led_display.show();
   initialize_snake();
   initialize_ball();
 
+// set input pins to navigating the snake
   pinMode(UpButton, INPUT_PULLUP);
   pinMode(RightButton, INPUT_PULLUP);
   pinMode(LeftButton, INPUT_PULLUP);
   pinMode(DownButton, INPUT_PULLUP);
 }
+
 
 void loop() {
 
@@ -52,6 +64,9 @@ void loop() {
   display_ball();
   led_display.show();
 
+// specifiy the next move of snake
+// this piece of code is executing 7 times for betterize reading from input
+// otherwize the player may push button when delay is called and input is lost
   for(size_t i = 0; i < 7; i++){
 
     byte up_state=digitalRead(UpButton);
@@ -74,12 +89,15 @@ void loop() {
     delay(50);
   }
 
+// move the snake based on last move and buttons
   move_snake();
 
 }
 
 void initialize_ball(void){
   
+  // set a random possition for bull
+  // it wont be part of snake
   int finished=1;
 
   do{
@@ -101,9 +119,11 @@ void initialize_ball(void){
 }
 
 void move_snake(void){
+  // find next position the snake should move
   int current_position=snake->head->position;
   int next_position = current_position + snake->next_move;
 
+// check the move is allowed
   if (next_position > 255 || next_position < 0){
     lost();
     return;
@@ -132,6 +152,7 @@ void move_snake(void){
 
   int eated_ball=0;
 
+// checking that ball is eated or not
   if (next_position == ball){
     eated_ball=1;
     initialize_ball();
@@ -149,6 +170,7 @@ void move_snake(void){
   }
 
 }
+
 
 void display_ground(void){
   for(size_t i = 0; i < 256; i++){
@@ -174,7 +196,6 @@ void display_ball(void){
   led_display.setPixelColor(ball, 255, 0, 0);
   
 }
-
 
 void initialize_snake(void){
 
